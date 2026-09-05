@@ -1,10 +1,14 @@
 """
 Database session management and engine configuration for FindNest.
+Includes resilient fallback to local PostgreSQL if cloud DNS/IPv6 is unreachable.
 """
+import logging
 from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Engine configuration with connection pooling and liveness checks
 engine_kwargs = {
@@ -20,7 +24,29 @@ if not settings.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
         "pool_recycle": settings.DB_POOL_RECYCLE,
     })
 
-engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, **engine_kwargs)
+
+def _create_resilient_engine():
+    primary_uri = settings.SQLALCHEMY_DATABASE_URI
+    try:
+        eng = create_engine(primary_uri, **engine_kwargs)
+        with eng.connect() as conn:
+            pass
+        return eng
+    except Exception as exc:
+        host_info = primary_uri.split("@")[-1] if "@" in primary_uri else primary_uri
+        logger.warning(
+            "[Database] Primary connection failed (%s). Falling back to local PostgreSQL at 127.0.0.1:5432/findnest. Error: %s",
+            host_info,
+            exc,
+        )
+        local_uri = (
+            f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@"
+            f"{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+        )
+        return create_engine(local_uri, **engine_kwargs)
+
+
+engine = _create_resilient_engine()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
