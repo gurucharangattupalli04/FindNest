@@ -1,0 +1,60 @@
+# Environment & Secrets (NEVER COMMIT)
+.env
+.env.*
+*.env
+backend/.env
+!*.env.example
+!**/.env.example
+*firebase*.json
+*.pem
+*.key
+
+# Dependencies & Build Output
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python & Virtual Environments
+venv/
+.venv/
+backend/venv/
+backend/.venv/
+__pycache__/
+backend/**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Local PostgreSQL Data & Binaries
+backend/pgdata/
+backend/pgsql/
+pgdata/
+pgsql/
+
+# Local Uploaded User Content
+backend/static/uploads/*
+!backend/static/uploads/.gitkeep
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Logs & Cache
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor & System Files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
