@@ -44,6 +44,29 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Open item details automatically when arriving from email notification (?match_item=...)
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const matchItemId = params.get('match_item') || params.get('item_id');
+      if (matchItemId) {
+        itemsApi.getFoundItem(matchItemId)
+          .then((item) => {
+            if (item) setSelectedItem(item);
+          })
+          .catch(() => {
+            itemsApi.getLostItem(matchItemId)
+              .then((item) => {
+                if (item) setSelectedItem(item);
+              })
+              .catch(() => {});
+          });
+      }
+    } catch {
+      // Safe fallback if searchParams is unavailable
+    }
+  }, [setSelectedItem]);
+
   const handleOpenReportLost = () => {
     setEditingItem(null);
     setReportLostOpen(true);

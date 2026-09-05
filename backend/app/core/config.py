@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
     SMTP_TLS: bool = True
-    FRONTEND_URL: str = "http://localhost:5173"
+    FRONTEND_URL: str = "https://find-nest-jade.vercel.app"
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:

@@ -24,7 +24,16 @@ class EmailService:
         self.enabled = settings.EMAIL_ENABLED
         self.provider = (settings.EMAIL_PROVIDER or "console").lower()
         self.from_email = settings.EMAIL_FROM
-        self.frontend_url = settings.FRONTEND_URL.rstrip("/")
+
+    @property
+    def frontend_url(self) -> str:
+        import os
+        url = (settings.FRONTEND_URL or "").strip().rstrip("/")
+        # If running on Render or if localhost was passed in cloud environment, use live Vercel URL
+        if not url or "localhost" in url or "127.0.0.1" in url:
+            if "RENDER" in os.environ:
+                return "https://find-nest-jade.vercel.app"
+        return url or "https://find-nest-jade.vercel.app"
 
     def send_smart_match_email(
         self,
