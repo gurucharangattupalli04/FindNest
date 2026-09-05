@@ -3,6 +3,8 @@
  * Posts image files to the backend /api/v1/upload/image endpoint.
  */
 
+import { getFullApiUrl } from './apiConfig';
+
 export const uploadService = {
   /**
    * Uploads an image file to the backend.
@@ -30,7 +32,7 @@ export const uploadService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch('/api/v1/upload/image', {
+    const response = await fetch(getFullApiUrl('/api/v1/upload/image'), {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,

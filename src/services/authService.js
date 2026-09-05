@@ -3,7 +3,9 @@
  * Connects to FastAPI backend authentication endpoints.
  */
 
-const API_BASE = '/api/v1/auth';
+import { getFullApiUrl } from './apiConfig';
+
+const API_BASE = getFullApiUrl('/api/v1/auth');
 
 function formatErrorMessage(data, defaultMsg) {
   if (!data) return defaultMsg;

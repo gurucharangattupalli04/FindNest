@@ -3,7 +3,9 @@
  * Connects to FastAPI backend for In-App and Smart Match notifications.
  */
 
-const NOTIFICATIONS_API = '/api/v1/notifications';
+import { getFullApiUrl } from './apiConfig';
+
+const NOTIFICATIONS_API = getFullApiUrl('/api/v1/notifications');
 
 function formatErrorMessage(data, fallback) {
   if (!data) return fallback;

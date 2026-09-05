@@ -3,8 +3,10 @@
  * Connects to FastAPI + PostgreSQL backend for Lost & Found items CRUD.
  */
 
-const LOST_API = '/api/v1/lost-items';
-const FOUND_API = '/api/v1/found-items';
+import { getFullApiUrl, getImageUrl } from './apiConfig';
+
+const LOST_API = getFullApiUrl('/api/v1/lost-items');
+const FOUND_API = getFullApiUrl('/api/v1/found-items');
 
 function buildQueryString(params = {}) {
   const query = new URLSearchParams();
@@ -61,8 +63,8 @@ export function normalizeItem(rawItem, type) {
     contactEmail: rawItem.contact_email || null,
     status: rawItem.status || 'active',
     user_id: rawItem.user_id,
-    image_url: rawItem.image_url || null,
-    imageUrl: rawItem.image_url || null,
+    image_url: rawItem.image_url ? getImageUrl(rawItem.image_url) : null,
+    imageUrl: rawItem.image_url ? getImageUrl(rawItem.image_url) : null,
     featured: Boolean(rawItem.is_featured),
     accentColor: CATEGORY_ACCENT_COLORS[categoryKey] || 'from-slate-100 to-slate-200',
   };
