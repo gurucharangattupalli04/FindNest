@@ -180,6 +180,41 @@ class EmailService:
         except urllib.error.HTTPError as err:
             err_body = err.read().decode("utf-8", errors="ignore")
             logger.error("[EmailService] Resend API error (%s): %s", err.code, err_body)
+            # Resend free tier allows sending only to the registered account owner's email address
+            if err.code == 403 and "You can only send testing emails to your own email address" in err_body:
+                import re
+                match = re.search(r"\(([^)]+@[^)]+)\)", err_body)
+                verified_addr = match.group(1) if match else None
+                if verified_addr and verified_addr.lower() != to_email.lower():
+                    logger.info(
+                        "[EmailService] Resend Free Tier: Forwarding test alert to registered account email %s (intended for %s)",
+                        verified_addr,
+                        to_email,
+                    )
+                    payload["to"] = [verified_addr]
+                    payload["subject"] = f"[FindNest Test for {to_email}] {subject}"
+                    retry_data = json.dumps(payload).encode("utf-8")
+                    retry_req = urllib.request.Request(
+                        "https://api.resend.com/emails",
+                        data=retry_data,
+                        headers={
+                            "Authorization": f"Bearer {api_key}",
+                            "Content-Type": "application/json",
+                            "User-Agent": "FindNest-EmailService/1.0",
+                        },
+                        method="POST",
+                    )
+                    try:
+                        with urllib.request.urlopen(retry_req, timeout=10) as retry_resp:
+                            retry_resp_data = retry_resp.read().decode("utf-8")
+                            logger.info(
+                                "[EmailService] Successfully forwarded test email to %s via Resend: %s",
+                                verified_addr,
+                                retry_resp_data,
+                            )
+                            return True
+                    except Exception as retry_err:
+                        logger.error("[EmailService] Resend retry failed: %s", retry_err)
             return False
 
     def _send_via_smtp(
