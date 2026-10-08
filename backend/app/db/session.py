@@ -26,8 +26,19 @@ if not settings.SQLALCHEMY_DATABASE_URI.startswith("sqlite"):
     })
 
 
+def _normalize_uri(raw_uri: str) -> str:
+    uri = raw_uri.strip().strip('"').strip("'")
+    if uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+    # Ensure SSL is enabled for remote cloud databases (Supabase, Neon, AWS, Render)
+    if not any(loc in uri for loc in ("localhost", "127.0.0.1", "sqlite")) and "sslmode" not in uri:
+        sep = "&" if "?" in uri else "?"
+        uri = f"{uri}{sep}sslmode=require"
+    return uri
+
+
 def _create_resilient_engine():
-    primary_uri = settings.SQLALCHEMY_DATABASE_URI.strip().strip('"').strip("'")
+    primary_uri = _normalize_uri(settings.SQLALCHEMY_DATABASE_URI)
     
     # 1. First attempt: primary configured URI
     try:
@@ -48,21 +59,27 @@ def _create_resilient_engine():
         # Direct connection (db.<ref>.supabase.co) is IPv6 only.
         # When running on cloud hosts without IPv6 (e.g. Render) or IPv4 local networks,
         # fallback to the AWS IPv4 connection pooler.
-        if "db." in primary_uri and ".supabase.co" in primary_uri:
+        if ".supabase.co" in primary_uri:
             try:
-                ref_match = re.search(r"@db\.([a-z0-9]+)\.supabase\.co", primary_uri)
+                ref_match = re.search(r"@(?:db\.)?([a-z0-9]+)\.supabase\.co(?::\d+)?", primary_uri)
                 if ref_match:
                     proj_ref = ref_match.group(1)
-                    pooler_uri = primary_uri.replace(
-                        f"@db.{proj_ref}.supabase.co:5432",
-                        f"@aws-0-ap-northeast-1.pooler.supabase.com:5432"
+                    pooler_uri = re.sub(
+                        r"@(?:db\.)?" + proj_ref + r"\.supabase\.co(?::\d+)?",
+                        r"@aws-0-ap-northeast-1.pooler.supabase.com:5432",
+                        primary_uri
                     )
                     # Adjust username to postgres.<ref> required by Supabase poolers
                     if f"postgres.{proj_ref}" not in pooler_uri:
                         pooler_uri = pooler_uri.replace(
                             "postgres:",
-                            f"postgres.{proj_ref}:"
+                            f"postgres.{proj_ref}:",
+                            1
                         )
+                    if "sslmode=require" not in pooler_uri:
+                        sep = "&" if "?" in pooler_uri else "?"
+                        pooler_uri = f"{pooler_uri}{sep}sslmode=require"
+
                     logger.info("[Database] Attempting Supabase IPv4 pooler connection (%s)...", pooler_uri.split("@")[-1])
                     eng = create_engine(pooler_uri, **engine_kwargs)
                     with eng.connect() as conn:
@@ -73,19 +90,29 @@ def _create_resilient_engine():
                 logger.warning("[Database] Supabase pooler connection failed: %s", pooler_err)
 
         # 3. Local PostgreSQL fallback (for local development)
-        try:
-            local_uri = (
-                f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@"
-                f"{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
-            )
-            eng = create_engine(local_uri, **engine_kwargs)
-            with eng.connect() as conn:
-                pass
-            logger.info("[Database] Connected to local PostgreSQL.")
-            return eng
-        except Exception as local_err:
-            logger.error("[Database] All database connection attempts failed.")
-            raise exc
+        if any(local in primary_uri for local in ("localhost", "127.0.0.1")):
+            try:
+                local_uri = (
+                    f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@"
+                    f"{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+                )
+                eng = create_engine(local_uri, **engine_kwargs)
+                with eng.connect() as conn:
+                    pass
+                logger.info("[Database] Connected to local PostgreSQL.")
+                return eng
+            except Exception as local_err:
+                logger.warning("[Database] Local fallback failed: %s", local_err)
+
+        # 4. Resilient Fallback: do NOT crash Uvicorn process on startup.
+        # Allows FastAPI to boot, bind to $PORT, and serve /api/health with degraded status
+        # while waiting for DATABASE_URL environment variable to be provided.
+        logger.error(
+            "[Database] Could not verify database connection on startup (%s). "
+            "FastAPI is starting in degraded mode. Please check DATABASE_URL in Render environment variables.",
+            host_info,
+        )
+        return create_engine(primary_uri, **engine_kwargs)
 
 
 engine = _create_resilient_engine()
