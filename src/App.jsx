@@ -1,26 +1,38 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
 import { AppProvider, useApp } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
+import { ScrollToTop } from './components/common/ScrollToTop';
+
+// Route Pages
 import { HomePage } from './pages/HomePage';
+import { BrowsePage } from './pages/BrowsePage';
+import { HowItWorksPage } from './pages/HowItWorksPage';
+import { CommunityStatsPage } from './pages/CommunityStatsPage';
+import { ReportLostPage } from './pages/ReportLostPage';
+import { ReportFoundPage } from './pages/ReportFoundPage';
+import { MyReportsPage } from './pages/MyReportsPage';
+import { FAQPage } from './pages/FAQ';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { MyReportsPage } from './pages/MyReportsPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+
+// Shared Components & Modals
 import { ReportLostModal } from './features/lost/ReportLostModal';
 import { ReportFoundModal } from './features/found/ReportFoundModal';
 import { ItemDetailsModal } from './features/items/ItemDetailsModal';
+import { HelpFloatingButton } from './components/common/HelpFloatingButton';
 import { CheckCircle } from 'lucide-react';
 import { itemsApi } from './services/itemsApi';
 
 function AppContent() {
-  const [currentPage, setCurrentPage] = useState('home'); // 'home' | 'login' | 'register' | 'my-reports'
+  const navigate = useNavigate();
 
   const {
     items,
-    loading,
-    error,
-    refreshItems,
     reportLostOpen,
     setReportLostOpen,
     reportFoundOpen,
@@ -30,7 +42,6 @@ function AppContent() {
     selectedItem,
     setSelectedItem,
     toastMessage,
-    showToast,
     addLostItem,
     addFoundItem,
     editLostItem,
@@ -39,13 +50,8 @@ function AppContent() {
     deleteFoundItem,
   } = useApp();
 
-  const handleNavigate = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Open item details automatically when arriving from email notification (?match_item=...)
-  React.useEffect(() => {
+  // Open item details automatically when arriving from email notification (?match_item=... or ?item_id=...)
+  useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       const matchItemId = params.get('match_item') || params.get('item_id');
@@ -66,16 +72,6 @@ function AppContent() {
       // Safe fallback if searchParams is unavailable
     }
   }, [setSelectedItem]);
-
-  const handleOpenReportLost = () => {
-    setEditingItem(null);
-    setReportLostOpen(true);
-  };
-
-  const handleOpenReportFound = () => {
-    setEditingItem(null);
-    setReportFoundOpen(true);
-  };
 
   const handleEditItem = (item) => {
     setEditingItem(item);
@@ -110,82 +106,66 @@ function AppContent() {
           return;
         }
       }
-      handleNavigate('my-reports');
+      navigate('/my-reports');
     } catch (err) {
       console.error('Error fetching notification item details:', err);
-      handleNavigate('my-reports');
+      navigate('/my-reports');
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans">
-      {/* Toast Notification */}
+    <div className="min-h-screen flex flex-col bg-aurora-bg text-aurora-text font-sans transition-colors duration-200 selection:bg-aurora-accent selection:text-white">
+      {/* Scroll to top automatically on route changes */}
+      <ScrollToTop />
+
+      {/* Global Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-800 flex items-center gap-3 animate-fade-in text-sm font-medium">
-          <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+        <div className="fixed bottom-6 right-6 z-50 bg-aurora-card text-aurora-text px-5 py-3.5 rounded-2xl shadow-card border border-aurora-border flex items-center gap-3 animate-fade-in text-sm font-medium">
+          <div className="w-6 h-6 rounded-full bg-aurora-success-bg text-aurora-success flex items-center justify-center shrink-0">
             <CheckCircle className="w-4 h-4" />
           </div>
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Top Navbar */}
-      <Navbar
-        onOpenReportLost={handleOpenReportLost}
-        onOpenReportFound={handleOpenReportFound}
-        onNavigate={handleNavigate}
-        onSelectNotification={handleSelectNotification}
-      />
+      {/* Top Navigation Bar */}
+      <Navbar onSelectNotification={handleSelectNotification} />
 
-      {/* Main Page Routing */}
+      {/* Main Routed Page Content */}
       <main className="flex-grow">
-        {currentPage === 'login' && (
-          <LoginPage
-            onNavigate={handleNavigate}
-            onSuccess={() => {
-              handleNavigate('home');
-              showToast('Welcome back! You are now signed in.');
-            }}
+        <Routes>
+          <Route
+            path="/"
+            element={<HomePage items={items} onSelectItem={(item) => setSelectedItem(item)} />}
           />
-        )}
-
-        {currentPage === 'register' && (
-          <RegisterPage
-            onNavigate={handleNavigate}
-            onSuccess={() => {
-              handleNavigate('home');
-              showToast('Account created successfully! Welcome to FindNest.');
-            }}
+          <Route
+            path="/browse"
+            element={<BrowsePage onSelectItem={(item) => setSelectedItem(item)} />}
           />
-        )}
-
-        {currentPage === 'my-reports' && (
-          <MyReportsPage
-            onNavigate={handleNavigate}
-            onOpenReportLost={handleOpenReportLost}
-            onOpenReportFound={handleOpenReportFound}
-            onEditItem={handleEditItem}
-            onSelectItem={(item) => setSelectedItem(item)}
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/community-stats" element={<CommunityStatsPage />} />
+          <Route path="/report-lost" element={<ReportLostPage />} />
+          <Route path="/report-found" element={<ReportFoundPage />} />
+          <Route
+            path="/my-reports"
+            element={
+              <MyReportsPage
+                onEditItem={handleEditItem}
+                onSelectItem={(item) => setSelectedItem(item)}
+              />
+            }
           />
-        )}
-
-        {currentPage === 'home' && (
-          <HomePage
-            items={items}
-            loading={loading}
-            error={error}
-            onRefresh={refreshItems}
-            onOpenReportLost={handleOpenReportLost}
-            onOpenReportFound={handleOpenReportFound}
-            onSelectItem={(item) => setSelectedItem(item)}
-          />
-        )}
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
       </main>
 
-      {/* Footer */}
+      {/* Global Footer */}
       <Footer />
 
-      {/* Modals */}
+      {/* Edit / Fallback Modals */}
       <ReportLostModal
         isOpen={reportLostOpen}
         editingItem={editingItem}
@@ -200,7 +180,7 @@ function AppContent() {
             await addLostItem(payload, token);
           }
         }}
-        onNavigateAuth={handleNavigate}
+        onNavigateAuth={() => navigate('/login')}
       />
 
       <ReportFoundModal
@@ -217,9 +197,10 @@ function AppContent() {
             await addFoundItem(payload, token);
           }
         }}
-        onNavigateAuth={handleNavigate}
+        onNavigateAuth={() => navigate('/login')}
       />
 
+      {/* Global Item Details Modal */}
       <ItemDetailsModal
         item={selectedItem}
         isOpen={Boolean(selectedItem)}
@@ -228,16 +209,23 @@ function AppContent() {
         onDelete={handleDeleteItem}
         onSelectItem={(item) => setSelectedItem(item)}
       />
+
+      {/* Floating Help & FAQ Button */}
+      <HelpFloatingButton />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppProvider>
-        <AppContent />
-      </AppProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppProvider>
+            <AppContent />
+          </AppProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }

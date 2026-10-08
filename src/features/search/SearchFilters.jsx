@@ -1,5 +1,13 @@
-import React from 'react';
-import { Search, MapPin, Filter, Layers } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Search, 
+  MapPin, 
+  X, 
+  ArrowUpDown, 
+  Calendar, 
+  SlidersHorizontal,
+  RotateCcw
+} from 'lucide-react';
 import { CATEGORIES } from '../../services/mockItems';
 
 export function SearchFilters({
@@ -10,90 +18,218 @@ export function SearchFilters({
   selectedCategory,
   onCategoryChange,
   locationFilter,
-  onLocationChange
+  onLocationChange,
+  dateFilter = 'all',
+  onDateFilterChange,
+  sortBy = 'recent',
+  onSortByChange,
+  onResetFilters,
+  totalResults: _totalResults = 0
 }) {
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+
+  // Debounce local search input
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== searchQuery) {
+        onSearchChange(localSearch);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [localSearch, onSearchChange, searchQuery]);
+
+  // Count active non-default filters
+  const activeFiltersCount = [
+    searchQuery.trim() !== '',
+    locationFilter.trim() !== '',
+    selectedType !== 'ALL',
+    selectedCategory !== 'all',
+    dateFilter !== 'all',
+    sortBy !== 'recent'
+  ].filter(Boolean).length;
+
   return (
-    <div className="w-full bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
-      {/* Top Search Inputs Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-        {/* Main Item Search */}
-        <div className="sm:col-span-7 relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+    <div className="w-full bg-aurora-card rounded-2xl border border-aurora-border p-4 sm:p-5 space-y-4 shadow-subtle transition-colors">
+      {/* Search & Location Bar */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+        {/* Keyword Search */}
+        <div className="md:col-span-6 relative">
+          <Search className="w-4 h-4 text-aurora-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             id="main-search-input"
             type="text"
-            placeholder="Search keywords (e.g., iPhone 14, Leather Wallet, Keys, Dog...)"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full bg-slate-50/70 border border-slate-200/90 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20 transition-all"
+            placeholder="Search by keywords (e.g. MacBook Pro, Wallet, Keys, Dog...)"
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            className="w-full bg-aurora-card border border-aurora-border rounded-xl pl-10 pr-9 py-2.5 text-sm text-aurora-text placeholder:text-aurora-muted focus:outline-none focus:border-aurora-accent focus:ring-2 focus:ring-aurora-accent/20 transition-all"
           />
+          {localSearch && (
+            <button
+              onClick={() => {
+                setLocalSearch('');
+                onSearchChange('');
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-aurora-muted hover:text-aurora-text p-1 rounded-full cursor-pointer"
+              aria-label="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        {/* Location Filter */}
-        <div className="sm:col-span-5 relative">
-          <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        {/* Location Search */}
+        <div className="md:col-span-4 relative">
+          <MapPin className="w-4 h-4 text-aurora-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             id="location-search-input"
             type="text"
-            placeholder="Filter by location (e.g., Library, Metro)"
+            placeholder="Filter location (e.g. Library, Terminal)"
             value={locationFilter}
             onChange={(e) => onLocationChange(e.target.value)}
-            className="w-full bg-slate-50/70 border border-slate-200/90 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20 transition-all"
+            className="w-full bg-aurora-card border border-aurora-border rounded-xl pl-10 pr-9 py-2.5 text-sm text-aurora-text placeholder:text-aurora-muted focus:outline-none focus:border-aurora-accent focus:ring-2 focus:ring-aurora-accent/20 transition-all"
           />
+          {locationFilter && (
+            <button
+              onClick={() => onLocationChange('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-aurora-muted hover:text-aurora-text p-1 rounded-full cursor-pointer"
+              aria-label="Clear location filter"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Mobile Filter Toggle & Reset Button */}
+        <div className="md:col-span-2 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="md:hidden flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-aurora-border bg-aurora-chip text-aurora-text text-xs font-semibold"
+          >
+            <SlidersHorizontal className="w-4 h-4 text-aurora-accent" />
+            <span>Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}</span>
+          </button>
+
+          {activeFiltersCount > 0 && (
+            <button
+              onClick={onResetFilters}
+              title="Reset all filters"
+              className="px-3 py-2.5 rounded-xl border border-aurora-border bg-aurora-card hover:bg-aurora-chip text-aurora-muted hover:text-aurora-accent text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Reset</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Filter Chips Row: Type Switch + Category Pills */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
-        {/* Type Toggle */}
-        <div className="inline-flex p-1 bg-slate-100 rounded-xl">
-          <button
-            onClick={() => onTypeChange('ALL')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-              selectedType === 'ALL'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            All Items
-          </button>
-          <button
-            onClick={() => onTypeChange('LOST')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-              selectedType === 'LOST'
-                ? 'bg-rose-500 text-white shadow-sm'
-                : 'text-slate-600 hover:text-rose-600'
-            }`}
-          >
-            Lost
-          </button>
-          <button
-            onClick={() => onTypeChange('FOUND')}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-              selectedType === 'FOUND'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-emerald-700'
-            }`}
-          >
-            Found
-          </button>
+      {/* Primary Category & Type Filters */}
+      <div className={`space-y-3 pt-2 border-t border-aurora-border ${mobileFiltersOpen ? 'block' : 'hidden md:block'}`}>
+        {/* Row 1: Type Selection Tabs */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 p-1 bg-aurora-chip rounded-xl border border-aurora-border">
+            <button
+              type="button"
+              onClick={() => onTypeChange('ALL')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                selectedType === 'ALL'
+                  ? 'bg-aurora-accent text-white shadow-subtle'
+                  : 'text-aurora-muted hover:text-aurora-text'
+              }`}
+            >
+              All Listings
+            </button>
+            <button
+              type="button"
+              onClick={() => onTypeChange('LOST')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                selectedType === 'LOST'
+                  ? 'bg-aurora-error-bg text-aurora-error border border-aurora-error/20'
+                  : 'text-aurora-muted hover:text-aurora-text'
+              }`}
+            >
+              Lost Items
+            </button>
+            <button
+              type="button"
+              onClick={() => onTypeChange('FOUND')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                selectedType === 'FOUND'
+                  ? 'bg-aurora-success-bg text-aurora-success border border-aurora-success/20'
+                  : 'text-aurora-muted hover:text-aurora-text'
+              }`}
+            >
+              Found Items
+            </button>
+          </div>
+
+          {/* Date & Sort Controls */}
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            {/* Date filter dropdown */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-aurora-border bg-aurora-card text-aurora-muted">
+              <Calendar className="w-3.5 h-3.5 text-aurora-accent shrink-0" />
+              <select
+                value={dateFilter}
+                onChange={(e) => onDateFilterChange(e.target.value)}
+                className="bg-transparent text-aurora-text font-medium text-xs focus:outline-none cursor-pointer"
+                aria-label="Filter by date range"
+              >
+                <option value="all">Any Date</option>
+                <option value="today">Past 24 Hours</option>
+                <option value="week">Past 7 Days</option>
+                <option value="month">Past 30 Days</option>
+              </select>
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-aurora-border bg-aurora-card text-aurora-muted">
+              <ArrowUpDown className="w-3.5 h-3.5 text-aurora-accent shrink-0" />
+              <select
+                value={sortBy}
+                onChange={(e) => onSortByChange(e.target.value)}
+                className="bg-transparent text-aurora-text font-medium text-xs focus:outline-none cursor-pointer"
+                aria-label="Sort listings"
+              >
+                <option value="recent">Most Recent</option>
+                <option value="reward">Highest Reward</option>
+                <option value="title">Alphabetical (A-Z)</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        {/* Category horizontal scroll pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-none">
+        {/* Row 2: Categories Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-1">
+          <button
+            type="button"
+            onClick={() => onCategoryChange('all')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 border ${
+              selectedCategory === 'all'
+                ? 'bg-aurora-accent text-white border-aurora-accent shadow-subtle'
+                : 'bg-aurora-chip text-aurora-muted border-aurora-border hover:text-aurora-text hover:border-aurora-accent/40'
+            }`}
+          >
+            All Categories
+          </button>
           {CATEGORIES.map((cat) => {
             const isSelected = selectedCategory === cat.id;
             return (
               <button
                 key={cat.id}
+                type="button"
                 onClick={() => onCategoryChange(cat.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-all ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 border ${
                   isSelected
-                    ? 'bg-brand-600 text-white shadow-sm shadow-brand-500/20'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                    ? 'bg-aurora-accent text-white border-aurora-accent shadow-subtle'
+                    : 'bg-aurora-chip text-aurora-muted border-aurora-border hover:text-aurora-text hover:border-aurora-accent/40'
                 }`}
               >
-                {cat.name}
+                {cat.label}
               </button>
             );
           })}

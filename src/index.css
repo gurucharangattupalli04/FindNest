@@ -2,17 +2,107 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Aurora Light Tokens (Single Source of Truth) */
+  --aurora-bg: #F5F7FF;
+  --aurora-card: #FFFFFF;
+  --aurora-text: #1B1F3B;
+  --aurora-muted: #6B7194;
+  --aurora-accent: #5B5BF0;
+  --aurora-accent-hover: #4A4AE2;
+  --aurora-accent-text: #FFFFFF;
+  --aurora-border: #E3E6F8;
+  --aurora-radar: #C9CCF5;
+  --aurora-chip: #ECECFF;
+
+  /* Status Colors */
+  --aurora-success: #16A34A;
+  --aurora-success-bg: #E8F8EE;
+  --aurora-warning: #D97706;
+  --aurora-warning-bg: #FFF4E0;
+  --aurora-error: #DC2626;
+  --aurora-error-bg: #FDECEC;
+}
+
+.dark {
+  /* Restyled Dark Option: Violet/Indigo family (NO green terminal) */
+  --aurora-bg: #0F1123;
+  --aurora-card: #181B34;
+  --aurora-text: #F1F3FF;
+  --aurora-muted: #9BA1C8;
+  --aurora-accent: #7070FF;
+  --aurora-accent-hover: #5B5BF0;
+  --aurora-accent-text: #FFFFFF;
+  --aurora-border: #292E54;
+  --aurora-radar: #3D437A;
+  --aurora-chip: #22264C;
+
+  /* Status Colors (Dark Contrast) */
+  --aurora-success: #4ADE80;
+  --aurora-success-bg: #143522;
+  --aurora-warning: #FBBF24;
+  --aurora-warning-bg: #3D2E0B;
+  --aurora-error: #F87171;
+  --aurora-error-bg: #3F1818;
+}
+
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 overflow-x-hidden;
+    background-color: var(--aurora-bg);
+    color: var(--aurora-text);
+    overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: -0.02em;
+    color: var(--aurora-text);
   }
 }
 
 @layer utilities {
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-slate-200/70 shadow-sm hover:shadow-md transition-all duration-200;
+    background-color: var(--aurora-card);
+    border: 1px solid var(--aurora-border);
+    box-shadow: 0 2px 8px -2px rgba(27, 31, 59, 0.05);
+    transition: all 0.2s ease;
+  }
+  .glass-card:hover {
+    box-shadow: 0 8px 16px -4px rgba(27, 31, 59, 0.08);
   }
   .glass-nav {
-    @apply bg-white/85 backdrop-blur-lg border-b border-slate-200/80;
+    background-color: var(--aurora-card);
+    border-bottom: 1px solid var(--aurora-border);
   }
+  .glass-panel {
+    background-color: var(--aurora-card);
+    border: 1px solid var(--aurora-border);
+    box-shadow: 0 4px 12px -2px rgba(27, 31, 59, 0.06);
+  }
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--aurora-border);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--aurora-muted);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--aurora-border) transparent;
 }

@@ -66,7 +66,18 @@ async def api_health() -> HealthResponse:
 # Mount versioned API routes under /api/v1
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+# Auto-initialize database tables on application startup
+@app.on_event("startup")
+def on_startup():
+    try:
+        from app.db.init_db import init_db
+        init_db()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Startup init_db encountered warning: %s", e)
+
 # Ensure static/uploads exists and mount static directory for local uploads
 os.makedirs("static/uploads", exist_ok=True)
 if os.path.exists("static"):
     app.mount("/static", StaticFiles(directory="static"), name="static")
+

@@ -3,7 +3,7 @@
  * Connects to FastAPI + PostgreSQL backend for Lost & Found items CRUD.
  */
 
-import { getFullApiUrl, getImageUrl } from './apiConfig';
+import { getFullApiUrl, getImageUrl } from './apiConfig.js';
 
 const LOST_API = getFullApiUrl('/api/v1/lost-items');
 const FOUND_API = getFullApiUrl('/api/v1/found-items');

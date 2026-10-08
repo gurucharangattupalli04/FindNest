@@ -2,17 +2,18 @@ import React from 'react';
 
 export function Badge({ children, variant = 'neutral', size = 'md', className = '' }) {
   const variantStyles = {
-    lost: 'bg-rose-50 text-rose-700 border-rose-200/80 font-semibold',
-    found: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 font-semibold',
-    brand: 'bg-indigo-50 text-indigo-700 border-indigo-200/80 font-medium',
-    neutral: 'bg-slate-100 text-slate-700 border-slate-200 font-medium',
-    accent: 'bg-amber-50 text-amber-800 border-amber-200/80 font-medium',
+    lost: 'bg-aurora-error-bg text-aurora-error border-aurora-error/20 font-semibold',
+    found: 'bg-aurora-success-bg text-aurora-success border-aurora-success/20 font-semibold',
+    brand: 'bg-aurora-chip text-aurora-accent border-aurora-accent/20 font-semibold',
+    neutral: 'bg-aurora-chip text-aurora-muted border-aurora-border font-medium',
+    accent: 'bg-aurora-warning-bg text-aurora-warning border-aurora-warning/20 font-semibold',
+    reward: 'bg-aurora-warning-bg text-aurora-warning border-aurora-warning/30 font-bold',
   };
 
   const sizeStyles = {
-    sm: 'text-xs px-2 py-0.5',
+    sm: 'text-[10px] px-2 py-0.5',
     md: 'text-xs px-2.5 py-1',
-    lg: 'text-sm px-3 py-1.5',
+    lg: 'text-xs px-3 py-1.5 font-semibold',
   };
 
   return (

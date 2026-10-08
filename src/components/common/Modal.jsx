@@ -22,25 +22,25 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-lg' 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-aurora-text/40 transition-opacity animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal Dialog */}
-      <div className={`relative w-full ${maxWidth} bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 z-10 animate-fade-in my-8 max-h-[90vh] flex flex-col`}>
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
-          <h3 className="text-lg font-bold text-slate-900 tracking-tight">{title}</h3>
+      <div className={`relative w-full ${maxWidth} bg-aurora-card rounded-2xl shadow-card border border-aurora-border p-6 sm:p-7 z-10 animate-fade-in my-8 max-h-[90vh] flex flex-col transition-colors`}>
+        <div className="flex items-center justify-between pb-4 border-b border-aurora-border mb-5">
+          <h3 className="text-xl font-bold text-aurora-text tracking-tight">{title}</h3>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-1.5 text-aurora-muted hover:text-aurora-text hover:bg-aurora-chip rounded-xl transition-colors cursor-pointer"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="overflow-y-auto pr-1">
+        <div className="overflow-y-auto pr-1 text-aurora-text">
           {children}
         </div>
       </div>

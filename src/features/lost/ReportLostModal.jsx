@@ -146,11 +146,11 @@ export function ReportLostModal({ isOpen, onClose, onSubmit, editingItem = null,
     >
       {!isAuthenticated ? (
         <div className="text-center py-6 space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 rounded-2xl bg-aurora-warning-bg border border-aurora-warning/30 text-aurora-warning flex items-center justify-center mx-auto">
             <ShieldAlert className="w-6 h-6" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">Sign In Required</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <h3 className="text-lg font-bold text-aurora-text">Sign In Required</h3>
+          <p className="text-xs text-aurora-muted max-w-sm mx-auto">
             To prevent spam and keep our community safe, reporting items requires an authenticated account.
           </p>
           <div className="pt-2 flex justify-center gap-3">
@@ -173,8 +173,8 @@ export function ReportLostModal({ isOpen, onClose, onSubmit, editingItem = null,
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Informational banner */}
-          <div className="p-3 bg-rose-50 border border-rose-100 rounded-2xl flex items-start gap-3 text-xs text-rose-800">
-            <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <div className="p-3.5 bg-aurora-error-bg border border-aurora-error/20 rounded-2xl flex items-start gap-3 text-xs text-aurora-error">
+            <ShieldAlert className="w-5 h-5 text-aurora-error shrink-0 mt-0.5" />
             <p>
               {isEditing
                 ? "Update details about your lost item. Changes will immediately sync to PostgreSQL."
@@ -184,8 +184,8 @@ export function ReportLostModal({ isOpen, onClose, onSubmit, editingItem = null,
 
           {/* Error notice */}
           {formError && (
-            <div className="p-3 rounded-xl bg-rose-100 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <div className="p-3 rounded-xl bg-aurora-error-bg border border-aurora-error/30 text-aurora-error text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-aurora-error shrink-0" />
               <span>{formError}</span>
             </div>
           )}
@@ -204,13 +204,13 @@ export function ReportLostModal({ isOpen, onClose, onSubmit, editingItem = null,
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-slate-700 tracking-wide uppercase block mb-1.5">
-                Category <span className="text-rose-500">*</span>
+              <label className="text-xs font-semibold text-aurora-text tracking-wide uppercase block mb-1.5">
+                Category <span className="text-aurora-error">*</span>
               </label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+                className="w-full bg-aurora-card border border-aurora-border rounded-2xl px-3.5 py-2.5 text-sm text-aurora-text focus:outline-none focus:border-aurora-accent focus:ring-2 focus:ring-aurora-accent/20 cursor-pointer"
               >
                 {CATEGORIES.filter((c) => c.id !== 'all').map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -307,8 +307,8 @@ export function ReportLostModal({ isOpen, onClose, onSubmit, editingItem = null,
           />
 
           <div>
-            <label className="text-xs font-semibold text-slate-700 tracking-wide uppercase block mb-1.5">
-              Distinctive Features / Description <span className="text-rose-500">*</span>
+            <label className="text-xs font-semibold text-aurora-text tracking-wide uppercase block mb-1.5">
+              Distinctive Features / Description <span className="text-aurora-error">*</span>
             </label>
             <textarea
               rows="3"
@@ -319,11 +319,11 @@ export function ReportLostModal({ isOpen, onClose, onSubmit, editingItem = null,
                 setFormError('');
               }}
               required
-              className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              className="w-full bg-aurora-card border border-aurora-border rounded-2xl p-3 text-sm text-aurora-text placeholder:text-aurora-muted/60 focus:outline-none focus:border-aurora-accent focus:ring-2 focus:ring-aurora-accent/20"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-aurora-border">
             <Button variant="outline" onClick={onClose} disabled={submitting || uploadingImage}>
               Cancel
             </Button>

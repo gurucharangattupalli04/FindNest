@@ -10,8 +10,8 @@ export function Card({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl border border-slate-200/80 p-5 ${
-        hoverEffect ? 'hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200' : 'shadow-sm'
+      className={`bg-aurora-card rounded-2xl border border-aurora-border p-5 text-aurora-text ${
+        hoverEffect ? 'hover:border-aurora-accent/40 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300' : 'shadow-subtle'
       } ${className}`}
       {...props}
     >
@@ -19,3 +19,4 @@ export function Card({
     </div>
   );
 }
+

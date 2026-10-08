@@ -29,37 +29,40 @@ export function ItemCard({ item, onSelect, onCheckMatches }) {
   const isLost = item.type === 'LOST';
   const IconComponent = CATEGORY_ICONS[item.category] || Package;
 
+  const hasImage = Boolean(item.imageUrl || item.image_url);
+  const displayImage = item.imageUrl || item.image_url;
+
   return (
     <div 
-      onClick={() => onSelect(item)}
-      className="group bg-white rounded-2xl border border-slate-200/80 p-5 hover:border-slate-300 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer"
+      onClick={() => onSelect && onSelect(item)}
+      className="group bg-aurora-card rounded-2xl border border-aurora-border p-5 hover:border-aurora-accent hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between cursor-pointer"
     >
       <div>
-        {/* Card Header: Type Badge, Reward, Category Icon */}
+        {/* Top Badges Row */}
         <div className="flex items-center justify-between gap-2 mb-3.5">
           <div className="flex items-center gap-2">
             <Badge variant={isLost ? 'lost' : 'found'} size="md">
-              <span className={`w-1.5 h-1.5 rounded-full ${isLost ? 'bg-rose-500' : 'bg-emerald-500'} animate-ping`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isLost ? 'bg-aurora-error' : 'bg-aurora-success'}`} />
               {item.type}
             </Badge>
             {item.reward && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                <Award className="w-3 h-3 text-amber-600" />
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-aurora-warning-bg text-aurora-warning border border-aurora-warning/20">
+                <Award className="w-3 h-3 shrink-0" />
                 {item.reward}
               </span>
             )}
           </div>
 
-          <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 group-hover:text-brand-600 group-hover:bg-brand-50 transition-colors">
+          <div className="w-8 h-8 rounded-xl bg-aurora-chip border border-aurora-border flex items-center justify-center text-aurora-muted group-hover:text-aurora-accent transition-colors">
             <IconComponent className="w-4 h-4" />
           </div>
         </div>
 
-        {/* Visual Thumbnail: Real Image or Category Icon */}
-        <div className={`w-full h-36 rounded-xl mb-4 bg-gradient-to-br ${item.accentColor || 'from-slate-100 to-slate-200'} border border-slate-100/80 flex items-center justify-center relative overflow-hidden group-hover:scale-[1.01] transition-transform`}>
-          {(item.imageUrl || item.image_url) ? (
+        {/* Thumbnail: Real Photo or Category Placeholder */}
+        <div className="w-full h-44 rounded-xl mb-4 bg-aurora-chip border border-aurora-border flex items-center justify-center relative overflow-hidden transition-transform">
+          {hasImage ? (
             <img
-              src={item.imageUrl || item.image_url}
+              src={displayImage}
               alt={item.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               onError={(e) => {
@@ -71,69 +74,70 @@ export function ItemCard({ item, onSelect, onCheckMatches }) {
             />
           ) : null}
 
+          {/* Fallback */}
           <div
-            className={`p-3.5 bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm text-slate-700 group-hover:text-brand-600 transition-colors ${
-              (item.imageUrl || item.image_url) ? 'hidden' : 'flex'
+            className={`flex flex-col items-center justify-center gap-1.5 text-aurora-muted group-hover:text-aurora-accent transition-colors ${
+              hasImage ? 'hidden' : 'flex'
             }`}
           >
-            <IconComponent className="w-8 h-8" />
-          </div>
-
-          {item.ai_metadata?.model && (
-            <div className="absolute top-2 left-2 flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-white/95 px-2 py-0.5 rounded-full shadow-xs border border-purple-100 backdrop-blur-xs">
-              <Sparkles className="w-2.5 h-2.5 text-purple-600" />
-              <span>AI</span>
+            <div className="p-3 rounded-xl bg-aurora-card border border-aurora-border shadow-subtle">
+              <IconComponent className="w-6 h-6" />
             </div>
-          )}
-
-          <div className="absolute bottom-2 right-2 text-[10px] font-semibold text-slate-700 bg-white/90 px-2 py-0.5 rounded-md backdrop-blur-xs shadow-xs">
-            {item.category.toUpperCase()}
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-aurora-muted">
+              {item.category}
+            </span>
           </div>
+
+          {/* Time posted pill */}
+          <span className="absolute bottom-2.5 right-2.5 text-[10px] font-medium bg-aurora-card/90 text-aurora-muted px-2 py-0.5 rounded-full border border-aurora-border">
+            {formatTimeAgo(item.date || item.created_at)}
+          </span>
         </div>
 
-        {/* Title */}
-        <h3 className="font-bold text-slate-900 text-base mb-1.5 group-hover:text-brand-600 transition-colors line-clamp-1">
-          {item.title}
-        </h3>
-
-        {/* Description */}
-        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">
-          {item.description}
-        </p>
+        {/* Item Title & Description */}
+        <div className="space-y-1.5 mb-4">
+          <h3 className="font-bold text-base text-aurora-text group-hover:text-aurora-accent transition-colors line-clamp-1">
+            {item.title}
+          </h3>
+          <p className="text-xs text-aurora-muted line-clamp-2 leading-relaxed">
+            {item.description}
+          </p>
+        </div>
       </div>
 
-      {/* Card Footer: Metadata */}
-      <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
-        <div className="flex items-center justify-between text-xs text-slate-500">
-          <div className="flex items-center gap-1.5 truncate max-w-[70%]">
-            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+      {/* Footer Info */}
+      <div className="space-y-3 pt-3 border-t border-aurora-border">
+        {/* Meta badges: Location & Date */}
+        <div className="space-y-1.5 text-xs text-aurora-muted">
+          <div className="flex items-center gap-1.5 truncate">
+            <MapPin className="w-3.5 h-3.5 text-aurora-accent shrink-0" />
             <span className="truncate">{item.location}</span>
           </div>
-          <div className="flex items-center gap-1 shrink-0 text-slate-400">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>{formatTimeAgo(item.date)}</span>
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-aurora-muted shrink-0" />
+            <span>{item.date || 'Recent'}</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-1 gap-2">
+        {/* Action Row */}
+        <div className="flex items-center justify-between gap-2 pt-1">
+          {/* Smart Match CTA */}
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              if (onCheckMatches) {
-                onCheckMatches(item);
-              } else if (onSelect) {
-                onSelect(item);
-              }
+              if (onCheckMatches) onCheckMatches(item);
             }}
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 hover:bg-purple-100/90 px-2 py-0.5 rounded-lg border border-purple-200 transition-colors shadow-2xs"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-aurora-chip hover:bg-aurora-accent hover:text-white text-aurora-accent border border-aurora-border text-xs font-semibold transition-colors cursor-pointer"
             title="Scan for AI Matches"
           >
-            <Sparkles className="w-3 h-3 text-purple-600" />
-            AI Matches
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI Matches</span>
           </button>
-          <span className="text-xs font-semibold text-brand-600 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-            Details <ArrowUpRight className="w-3.5 h-3.5" />
+
+          <span className="text-xs font-semibold text-aurora-muted group-hover:text-aurora-accent transition-colors inline-flex items-center gap-1">
+            View Details
+            <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </span>
         </div>
       </div>

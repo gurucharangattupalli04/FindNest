@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
-import { User, Mail, Lock, Phone, UserPlus, ArrowLeft, AlertCircle, Compass, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, Mail, Lock, Phone, UserPlus, ArrowLeft, Compass, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Container } from '../components/layout/Container';
 
-export function RegisterPage({ onNavigate, onSuccess }) {
+export function RegisterPage({ onSuccess }) {
   const { register, error: authError, clearError } = useAuth();
+  const { showToast } = useApp();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = 'Create Account | FindNest';
+  }, []);
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -46,8 +55,11 @@ export function RegisterPage({ onNavigate, onSuccess }) {
         password,
         phone_number: phoneNumber.trim() || undefined,
       });
-      if (onSuccess) onSuccess();
-      else if (onNavigate) onNavigate('home');
+      showToast('Account created successfully! Welcome to FindNest.');
+      if (onSuccess) {
+        onSuccess();
+      }
+      navigate('/', { replace: true });
     } catch (err) {
       setLocalError(err.message || 'Registration failed.');
     } finally {
@@ -56,116 +68,108 @@ export function RegisterPage({ onNavigate, onSuccess }) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-140px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 via-indigo-50/20 to-slate-50">
+    <div className="min-h-[calc(100vh-140px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-aurora-bg transition-colors duration-200 animate-fade-in">
       <Container size="sm">
         <div className="max-w-md mx-auto">
           {/* Back link */}
-          <button
-            type="button"
-            onClick={() => onNavigate && onNavigate('home')}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-brand-600 transition-colors mb-6 group cursor-pointer"
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-aurora-muted hover:text-aurora-accent transition-colors mb-6 group cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             Back to Home
-          </button>
+          </Link>
 
           {/* Card Container */}
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/80 p-8 sm:p-10">
+          <div className="bg-aurora-card rounded-2xl shadow-card border border-aurora-border p-8 sm:p-10 transition-colors">
             {/* Header / Logo */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-600 via-brand-500 to-indigo-500 text-white shadow-lg shadow-brand-500/25 mb-4">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-aurora-accent text-white shadow-subtle mb-4">
                 <Compass className="w-7 h-7" />
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Join FindNest
+              <h1 className="text-2xl sm:text-3xl font-extrabold font-display text-aurora-text tracking-tight">
+                Create an Account
               </h1>
-              <p className="text-sm text-slate-500 mt-2">
-                Create an account to report, track, and recover items
+              <p className="text-xs sm:text-sm text-aurora-muted mt-1.5">
+                Join the FindNest community to report items and receive instant AI match alerts
               </p>
             </div>
 
-            {/* Error Notification */}
+            {/* Error banner */}
             {(localError || authError) && (
-              <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3 animate-fade-in">
-                <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
-                <p className="text-xs sm:text-sm font-medium text-rose-800 leading-snug">
-                  {localError || authError}
-                </p>
+              <div className="mb-6 p-3.5 bg-aurora-error-bg border border-aurora-error/20 rounded-xl text-xs text-aurora-error font-medium flex items-center gap-2 animate-fade-in">
+                <span>{localError || authError}</span>
               </div>
             )}
 
-            {/* Registration Form */}
+            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                id="register-name"
-                label="Full Name"
-                type="text"
-                placeholder="e.g. Alex Chen"
-                value={fullName}
-                onChange={(e) => {
-                  setFullName(e.target.value);
-                  setLocalError('');
-                }}
-                icon={User}
-                required
-                autoComplete="name"
-              />
+              <div>
+                <label className="block text-xs font-bold text-aurora-text uppercase tracking-wider mb-1.5">
+                  Full Name <span className="text-aurora-error">*</span>
+                </label>
+                <Input
+                  id="register-name-input"
+                  icon={User}
+                  placeholder="e.g. Maya Lin"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  autoComplete="name"
+                  required
+                />
+              </div>
 
-              <Input
-                id="register-email"
-                label="Email Address"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setLocalError('');
-                }}
-                icon={Mail}
-                required
-                autoComplete="email"
-              />
+              <div>
+                <label className="block text-xs font-bold text-aurora-text uppercase tracking-wider mb-1.5">
+                  Email Address <span className="text-aurora-error">*</span>
+                </label>
+                <Input
+                  id="register-email-input"
+                  type="email"
+                  icon={Mail}
+                  placeholder="name@university.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  required
+                />
+              </div>
 
-              <Input
-                id="register-phone"
-                label="Phone Number (Optional)"
-                type="tel"
-                placeholder="+1 (555) 000-0000"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                icon={Phone}
-                helperText="Used to contact you when your lost item is found"
-                autoComplete="tel"
-              />
+              <div>
+                <label className="block text-xs font-bold text-aurora-text uppercase tracking-wider mb-1.5">
+                  Phone Number (Optional)
+                </label>
+                <Input
+                  id="register-phone-input"
+                  type="tel"
+                  icon={Phone}
+                  placeholder="+1 (555) 000-0000"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  autoComplete="tel"
+                />
+              </div>
 
-              <div className="w-full flex flex-col gap-1.5">
-                <label
-                  htmlFor="register-password"
-                  className="text-xs font-semibold text-slate-700 tracking-wide uppercase"
-                >
-                  Password (min 8 characters) <span className="text-rose-500">*</span>
+              <div>
+                <label className="block text-xs font-bold text-aurora-text uppercase tracking-wider mb-1.5">
+                  Password <span className="text-aurora-error">*</span>
                 </label>
                 <div className="relative flex items-center">
-                  <div className="absolute left-3.5 pointer-events-none text-slate-400 flex items-center">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <input
-                    id="register-password"
+                  <Input
+                    id="register-password-input"
                     type={showPassword ? 'text' : 'password'}
+                    icon={Lock}
                     placeholder="At least 8 characters"
                     value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setLocalError('');
-                    }}
-                    required
+                    onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
-                    className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-11 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                    required
+                    className="pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    className="absolute right-3.5 text-aurora-muted hover:text-aurora-text focus:outline-none transition-colors"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -173,57 +177,53 @@ export function RegisterPage({ onNavigate, onSuccess }) {
                 </div>
               </div>
 
-              <div className="w-full flex flex-col gap-1.5">
-                <label
-                  htmlFor="register-confirm-password"
-                  className="text-xs font-semibold text-slate-700 tracking-wide uppercase"
-                >
-                  Confirm Password <span className="text-rose-500">*</span>
+              <div>
+                <label className="block text-xs font-bold text-aurora-text uppercase tracking-wider mb-1.5">
+                  Confirm Password <span className="text-aurora-error">*</span>
                 </label>
-                <div className="relative flex items-center">
-                  <div className="absolute left-3.5 pointer-events-none text-slate-400 flex items-center">
-                    <ShieldCheck className="w-4 h-4" />
-                  </div>
-                  <input
-                    id="register-confirm-password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Re-type your password"
-                    value={confirmPassword}
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      setLocalError('');
-                    }}
-                    required
-                    autoComplete="new-password"
-                    className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
-                  />
-                </div>
+                <Input
+                  id="register-confirm-password-input"
+                  type={showPassword ? 'text' : 'password'}
+                  icon={Lock}
+                  placeholder="Re-enter password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
+                  required
+                />
               </div>
 
-              <Button
-                id="register-submit-btn"
-                type="submit"
-                variant="primary"
-                size="lg"
-                icon={UserPlus}
-                disabled={loading}
-                className="w-full shadow-md shadow-brand-500/20 mt-3"
-              >
-                {loading ? 'Creating Account...' : 'Create Account'}
-              </Button>
+              <div className="pt-2">
+                <Button
+                  id="register-submit-btn"
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  icon={UserPlus}
+                  disabled={loading}
+                  className="w-full shadow-subtle"
+                >
+                  {loading ? 'Creating account...' : 'Create Account'}
+                </Button>
+              </div>
             </form>
 
+            {/* Privacy note */}
+            <div className="mt-4 flex items-center gap-2 justify-center text-[11px] text-aurora-muted">
+              <ShieldCheck className="w-3.5 h-3.5 text-aurora-success shrink-0" />
+              <span>Contact information is never shared without consent</span>
+            </div>
+
             {/* Footer switcher */}
-            <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-              <p className="text-xs sm:text-sm text-slate-500">
+            <div className="mt-6 pt-6 border-t border-aurora-border text-center">
+              <p className="text-xs sm:text-sm text-aurora-muted">
                 Already have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => onNavigate && onNavigate('login')}
-                  className="font-bold text-brand-600 hover:text-brand-700 hover:underline cursor-pointer"
+                <Link
+                  to="/login"
+                  className="font-bold text-aurora-accent hover:underline cursor-pointer"
                 >
                   Sign in
-                </button>
+                </Link>
               </p>
             </div>
           </div>
